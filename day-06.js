@@ -56,6 +56,8 @@ let width = 0,
   height = 0;
 
 // Step 1: Determine the width / height of the needed coordinate plane:
+// We begin the plane at 0,0, for easier calculation: It is a bit of overhead (we really only
+// need the grid that outlines all coordinates), but the grid is small enough to let optimizations away.
 
 coords.forEach(pair => {
   let [col, row] = pair;
