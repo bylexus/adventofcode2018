@@ -22,10 +22,7 @@ class Node {
         this.meta = [];
     }
     sumCombinedMeta() {
-        return (
-            this.meta.reduce((acc, curr) => acc + curr, 0) +
-            this.childs.map(child => child.sumCombinedMeta()).reduce((acc, curr) => acc + curr, 0)
-        );
+        return this.sumMeta() + this.childs.map(child => child.sumCombinedMeta()).reduce((acc, curr) => acc + curr, 0);
     }
     sumMeta() {
         return this.meta.reduce((acc, curr) => acc + curr, 0);
