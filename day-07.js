@@ -180,12 +180,12 @@ while (true) {
 
   });
   if (workers.filter(w => w.part !== null).length === 0 && Object.keys(dependantsPart2).length === 0) {
+      second--; // already done in the last second
     break;
   } else {
     second++;
   }
 }
-second--;
 
 console.log(`Day 7: Time needed with 5 workers (Solution 2): ${second}, part order: ${stepsInOrder.join('')}`);
 
