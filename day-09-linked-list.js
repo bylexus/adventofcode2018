@@ -129,16 +129,6 @@ let inputsSolution2 = {
     marble: 1
 };
 
-let outputTest = playMarbleGame(inputsTest);
-console.log(`Day 9: Highest player score (Sample): ${outputTest.maxScore} from Player ${outputTest.maxPlayerIndex + 1}`);
-
-let output1 = playMarbleGame(inputsSolution1);
-console.log(`Day 9: Highest player score (Solution 1): ${output1.maxScore} from Player ${output1.maxPlayerIndex + 1}`);
-
-let output2 = playMarbleGame(inputsSolution2);
-console.log(`Day 9: Highest player score (Solution 2): ${output2.maxScore} from Player ${output2.maxPlayerIndex + 1}`);
-
-
 /**
  * The actual solving routine - with a ring list this is quite straight forward
  */
@@ -164,4 +154,14 @@ function playMarbleGame(inputs) {
     }
     return {maxScore, maxPlayerIndex: maxScoreIndex};
 }
+
+let outputTest = playMarbleGame(inputsTest);
+console.log(`Day 9: Highest player score (Sample): ${outputTest.maxScore} from Player ${outputTest.maxPlayerIndex + 1}`);
+
+let output1 = playMarbleGame(inputsSolution1);
+console.log(`Day 9: Highest player score (Solution 1): ${output1.maxScore} from Player ${output1.maxPlayerIndex + 1}`);
+
+let output2 = playMarbleGame(inputsSolution2);
+console.log(`Day 9: Highest player score (Solution 2): ${output2.maxScore} from Player ${output2.maxPlayerIndex + 1}`);
+
 
