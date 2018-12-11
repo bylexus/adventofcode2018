@@ -1,7 +1,8 @@
 let fs = require('fs');
-let matcher = new RegExp('\\<\\s*(-?\\d+),\\s*(-?\\d+)\\>.*\\<\\s*(-?\\d+),\\s*(-?\\d+)\\>');
+
 // Parse input into an array with 4 numbers: [x, y, velocityX, velocityY]
-let coords = [];
+let matcher = new RegExp('\\<\\s*(-?\\d+),\\s*(-?\\d+)\\>.*\\<\\s*(-?\\d+),\\s*(-?\\d+)\\>');
+let starmap = [];
 let input = fs
     .readFileSync('./day-10-input.txt', { encoding: 'UTF-8' })
     // .readFileSync('./day-10-input-small.txt', { encoding: 'UTF-8' })
@@ -9,9 +10,10 @@ let input = fs
     .split('\n')
     .map(line => {
         let match = line.trim().match(matcher);
-        coords.push([Number(match[1]), Number(match[2]), Number(match[3]), Number(match[4])]);
+        starmap.push([Number(match[1]), Number(match[2]), Number(match[3]), Number(match[4])]);
     });
 
+// Don't consider images higher than this:
 const MAX_HEIGHT = 15;
 
 /**
@@ -19,50 +21,56 @@ const MAX_HEIGHT = 15;
  * The image must be found visually. So the stars have to be drawn and output to be investigated manually.
  * But: The final coordinate set has a very large dimension: over 100'000 points in width / height.
  *
- * So my guess is that the final readable message must be within an image height of about 100.
- * So I will calculate the coordinate movements until it fits into a height of 100...
- * Then I will produce the output image until it does NOT fit into 100 again.
+ * So my guess is that the final readable message must be within an image height of about 15.
+ * So I will calculate the coordinate movements until it fits into a height of 15...
+ * Then I will produce the output image until it does NOT fit into 100 15.
  * Maybe this works.....
  */
 
 let entryBorder = false;
 let second = 0;
+// Each loop calculates the next second in the starmap.
+// If the starmap's height fit into MAX_HEIGHT, an ASCII art image is drawn.
 while (true) {
-    let dimInfo = findDimensions(coords),
+    let dimInfo = findDimensions(starmap),
         dim = dimInfo.dimension;
+    // Draw star map ASCII art, if small enough:
     if (dim[1] <= MAX_HEIGHT) {
         entryBorder = true;
-        console.log("Image dimension:", dim, "at second: ",second);
-        let img = calcImage(coords, dimInfo);
+        console.log('Image dimension:', dim, 'at second: ', second);
+        let img = calcImage(starmap, dimInfo);
         console.log(img);
     }
 
-    coords = calcNextPosition(coords);
+    starmap = calcNextPosition(starmap);
 
+    // we leave the max height range? end:
     if (dim[1] > MAX_HEIGHT && entryBorder) {
-        // we leave the 100-height range, end:
         break;
     }
     second++;
 }
 
-function findDimensions(coords) {
+/**
+ * Calculates the boundaries of the actual coodinates: width, height, min/max values
+ */
+function findDimensions(starmap) {
     let maxY = -Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let minX = Infinity;
-    for (let i = 0; i < coords.length; i++) {
-        if (coords[i][0] > maxX) {
-            maxX = coords[i][0];
+    for (let i = 0; i < starmap.length; i++) {
+        if (starmap[i][0] > maxX) {
+            maxX = starmap[i][0];
         }
-        if (coords[i][0] < minX) {
-            minX = coords[i][0];
+        if (starmap[i][0] < minX) {
+            minX = starmap[i][0];
         }
-        if (coords[i][1] > maxY) {
-            maxY = coords[i][1];
+        if (starmap[i][1] > maxY) {
+            maxY = starmap[i][1];
         }
-        if (coords[i][1] < minY) {
-            minY = coords[i][1];
+        if (starmap[i][1] < minY) {
+            minY = starmap[i][1];
         }
     }
     let result = {
@@ -75,31 +83,41 @@ function findDimensions(coords) {
     return result;
 }
 
-function calcNextPosition(coords) {
-    for (let i = 0; i < coords.length; i++) {
-        coords[i][0] += coords[i][2];
-        coords[i][1] += coords[i][3];
+/**
+ * Calculates the next second in the star map. Just apply the velocity vectors.
+ */
+function calcNextPosition(starmap) {
+    for (let i = 0; i < starmap.length; i++) {
+        starmap[i][0] += starmap[i][2];
+        starmap[i][1] += starmap[i][3];
     }
 
-    return coords;
+    return starmap;
 }
 
-function hasCoord(coords, coord) {
-    for (let i = 0; i < coords.length; i++) {
-        if (coords[i][0] === coord[0] && coords[i][1] === coord[1]) {
+/**
+ * Checks if the star map contains the given coordinate, return true if so,
+ * false if not
+ */
+function hasCoord(starmap, coord) {
+    for (let i = 0; i < starmap.length; i++) {
+        if (starmap[i][0] === coord[0] && starmap[i][1] === coord[1]) {
             return true;
         }
     }
     return false;
 }
 
-function calcImage(coords, dimensions) {
-    let str = "";
+/**
+ * Draws an Ascii-art of the actual starmap
+ */
+function calcImage(starmap, dimensions) {
+    let str = '';
     for (let y = dimensions.minY; y <= dimensions.maxY; y++) {
         for (let x = dimensions.minX; x <= dimensions.maxX; x++) {
-            str += hasCoord(coords, [x,y]) ? '*' : ' ';
+            str += hasCoord(starmap, [x, y]) ? '*' : ' ';
         }
-        str += "\n";
+        str += '\n';
     }
     return str;
 }
