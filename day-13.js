@@ -78,23 +78,34 @@ outer: while (true) {
         if (!cars[carKeys[k]]) {
             continue;
         }
+        // move act car one position further:
         let car = moveCar(cars[carKeys[k]], track, nextDir);
+
+        // remove from old car hash: it is not longer at this position
         delete cars[carKeys[k]];
+
+        // Check car crash: Look both in old car hash (cars not yet moved) and new car has (cars already moved)
+        // if a crash happens:
         let crashCars = checkCrash(car, newCars, cars);
         if (crashCars) {
+            // if so, output solution for problem 1:
             if (!firstCrashDone) {
                 console.log(`Day 13: Car crash at (Solution 1): ${crashCars.a.x},${crashCars.a.y}`);
                 firstCrashDone = true;
                 // break outer;
             }
+            // ... and remove both cars from both car hash arrays: remove debris from track :-)
             delete cars[carHash(crashCars.a)];
             delete cars[carHash(crashCars.b)];
             delete newCars[carHash(crashCars.a)];
             delete newCars[carHash(crashCars.b)];
         } else {
+            // no crash? good, car is now at the new position, in the new car hash:
             newCars[carHash(car)] = car;
         }
     }
+
+    // only one car remaining? Solution 2:
     if (Object.keys(newCars).length === 1) {
         let car = newCars[Object.keys(newCars)[0]];
         console.log(`Day 13: Final location of last remaining car: ${car.x},${car.y}`)
