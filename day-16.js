@@ -1,17 +1,13 @@
-let fs = require('fs');
+// ----- Use with node --harmony (for Object.values)
 
+let fs = require('fs');
 let samples = JSON.parse(fs.readFileSync('./day-16-input-part1.json', { encoding: 'UTF-8' }).trim());
 let testops = JSON.parse(fs.readFileSync('./day-16-input-part2.json', { encoding: 'UTF-8' }).trim());
 
 let ops = [addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr];
-let opcodes = {};
-
-// let op = [9,2,1,2];
-// let register = [3,2,1,1]
-
-// console.log(findMatchingOp(op,register,[3,2,2,1],ops));
-
+let opcodes = {}; // known op codes
 let unsureSamples = [];
+
 samples.forEach(sample => {
     let duplicateOps = findMatchingOps(sample.op, sample.before, sample.after, ops);
     // count possible duplicate ops (problem 1):
@@ -19,14 +15,14 @@ samples.forEach(sample => {
         unsureSamples.push(sample);
     }
     if (duplicateOps.length === 1) {
-        // found a unique op, register it:
+        // found a unique op, register it as known, for problem 2 later:
         opcodes[Number(sample.op[0])] = duplicateOps[0];
     }
 });
 
 console.log(`Day 16: Samples with >= 3 possible opcodes (Solution 1): ${unsureSamples.length}`);
 
-// for solution 2, we do the same: We loop so long with the KNOWN opcodes:
+// Part 2: for solution 2, we do the same: We loop so long with the KNOWN opcodes:
 // if we get > 1 matches, we check if only ONE is still unknown: Then we found a new one.
 // Repeat as long as we don't found all.
 while (Object.keys(opcodes).length < ops.length) {
@@ -43,9 +39,9 @@ while (Object.keys(opcodes).length < ops.length) {
         if (duplicateOps.length >= 2) {
             // found possible ops: eliminate all known ops. If only one remains, that one must be it.
             let unknownOps = [];
-            let opnames = Object.values(opcodes);
+            let ops = Object.values(opcodes);
             for (let i = 0; i < duplicateOps.length; i++) {
-                if (opnames.indexOf(duplicateOps[i]) === -1) {
+                if (ops.indexOf(duplicateOps[i]) === -1) {
                     unknownOps.push(duplicateOps[i]);
                 }
             }
@@ -58,7 +54,7 @@ while (Object.keys(opcodes).length < ops.length) {
 }
 console.log('Day 16: Deducted opcodes:\n', opcodes);
 
-// calculate the test program:
+// Part 2.2: calculate the test program:
 let startregister = [0, 0, 0, 0];
 testops.forEach(op => {
     startregister = applyOp(opcodes[Number(op[0])], op, startregister);
