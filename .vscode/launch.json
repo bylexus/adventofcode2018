@@ -4,11 +4,13 @@
     // Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "node",
+            "args": ["--harmony"],
             "request": "launch",
             "name": "Programm starten",
-            "program": "${workspaceFolder}/day-15.js"
+            "program": "${workspaceFolder}/day-16.js"
         }
     ]
 }
