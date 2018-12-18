@@ -10,7 +10,7 @@
             "args": ["--harmony"],
             "request": "launch",
             "name": "Programm starten",
-            "program": "${workspaceFolder}/day-16.js"
+            "program": "${workspaceFolder}/day-17.js"
         }
     ]
 }
