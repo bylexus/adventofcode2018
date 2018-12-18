@@ -48,10 +48,12 @@ console.log(minX, maxX, minY, maxY);
 
 init();
 // print();
-dripFromSource([0, 500]);
+drainFromSource([0, 500]);
 print();
-let waterCount = countWater();
+let waterCount = countWater(['~','|']);
+let stillWaterCount = countWater(['~']);
 console.log(`Day 17: Water count (Solution 1): ${waterCount}`);
+console.log(`Day 17: Still Water count (Solution 2): ${stillWaterCount}`);
 
 function init() {
     // init empty ground
@@ -89,12 +91,12 @@ function init() {
  *
  * @param {array} sourceCoord
  */
-function dripFromSource(sourceCoord) {
+function drainFromSource(sourceCoord) {
     let actCoord = [sourceCoord[0] + 1, sourceCoord[1]];
-    // step 1: drip down water:
+    // step 1: drain down water:
     while (earth[actCoord[0]] && (earth[actCoord[0]][actCoord[1]] === '.' || earth[actCoord[0]][actCoord[1]] === '~')) {
         let [y, x] = actCoord;
-        earth[y][x] = '~';
+        earth[y][x] = '|';
         if (y + 1 >= earth.length) {
             break;
         }
@@ -119,7 +121,7 @@ function dripFromSource(sourceCoord) {
                 // -1 means: we have reached an existing source, skip
                 continueFill = false;
             } else if (sourceL) {
-                sourceLEndCoords = dripFromSource(sourceL);
+                sourceLEndCoords = drainFromSource(sourceL);
                 if (!coordsMatch(sourceLEndCoords, sourceL)) {
                     continueFill = false;
                 }
@@ -129,12 +131,15 @@ function dripFromSource(sourceCoord) {
                 // -1 means: we have reached an existing source, skip
                 continueFill = false;
             } else if (sourceR) {
-                sourceREndCoords = dripFromSource(sourceR);
+                sourceREndCoords = drainFromSource(sourceR);
                 if (!coordsMatch(sourceREndCoords, sourceR)) {
                     continueFill = false;
                 }
             }
-            // if (!fakeSource && (sourceL || sourceR)) {
+            // If both sides are blocked (no drain at both sides), we fill the drain water with still water:
+            if (sourceR === null && sourceL === null) {
+                fillLine(actCoord);
+            }
             if (!continueFill) {
                 // end here, as sources do the rest:
                 return false;
@@ -159,6 +164,7 @@ function fillRight(coord) {
 function fillX(coord, dir) {
     // fills to the left (dir = -1) or right (dir=1) of the given coordinate, until we reach clay or a border.
     // If we reach a border, we return that coordinate as a new source's location.
+    // We fill it with draining water (|), as this is the top layer for now
     if (coord[1] === 0 || coord[1] >= earth[0].length) {
         return null;
     }
@@ -166,32 +172,59 @@ function fillX(coord, dir) {
     while (actCoord[1] >= 0 && actCoord[1] < earth[0].length) {
         // fill sand with water:
         if (earth[actCoord[0]][actCoord[1]] === '.') {
-            earth[actCoord[0]][actCoord[1]] = '~';
+            earth[actCoord[0]][actCoord[1]] = '|';
         }
         // have we reached clay? return.
         if (earth[actCoord[0]][actCoord[1]] === '#') {
             return null;
         }
-        // have we reached an existing source? return.
-        if (earth[actCoord[0]][actCoord[1]] === '+') {
-            // special case: If BEHIND the existing source is water, we ignore this source: Then it is part of a
-            // basin:
-            if (earth[actCoord[0]][actCoord[1]+dir] === '~') {
-                earth[actCoord[0]][actCoord[1]] = '~';
-                return null;
-            }
-            // return actCoord;
+        // have we reached an existing source? return -1, to indicate an already processed source
+        if (
+            earth[actCoord[0]][actCoord[1]] === '|' &&
+            earth[actCoord[0] + 1] &&
+            earth[actCoord[0] + 1][actCoord[1]] === '|'
+        ) {
             return -1;
         }
         // have we reached a border? OK, then this is a new source and the end
         // of fill:
         if (earth[actCoord[0] + 1][actCoord[1]] === '.') {
-            earth[actCoord[0]][actCoord[1]] = '+';
+            earth[actCoord[0]][actCoord[1]] = '|';
             return actCoord;
         }
         actCoord = [actCoord[0], actCoord[1] + dir];
     }
     return null;
+}
+
+/**
+ * fills a whole line with still water '~'. This function may only be called if it is SURE that both
+ * sides are blocked by a wall
+ */
+function fillLine(coord) {
+    if (coord[1] === 0 || coord[1] >= earth[0].length) {
+        return null;
+    }
+    // left side
+    let actCoord = coord.concat([], coord);
+    while (actCoord[1] >= 0 && actCoord[1] < earth[0].length) {
+        // have we reached clay? other side
+        if (earth[actCoord[0]][actCoord[1]] === '#') {
+            break;
+        }
+        earth[actCoord[0]][actCoord[1]] = '~';
+        actCoord = [actCoord[0], actCoord[1] - 1];
+    }
+    // right side
+    actCoord = coord.concat([], coord);
+    while (actCoord[1] >= 0 && actCoord[1] < earth[0].length) {
+        // have we reached clay? other side
+        if (earth[actCoord[0]][actCoord[1]] === '#') {
+            break;
+        }
+        earth[actCoord[0]][actCoord[1]] = '~';
+        actCoord = [actCoord[0], actCoord[1] + 1];
+    }
 }
 
 function isClay(coord) {
@@ -209,11 +242,11 @@ function isBottom(coord) {
     return coord[0] >= earth.length - 1 && earth[coord[0]][coord[1]] !== '#';
 }
 
-function countWater() {
+function countWater(waterTiles = ['~','|']) {
     let count = 0;
     for (let y = minY; y <= maxY; y++) {
         for (let x = 0; x < earth[y].length; x++) {
-            if (earth[y][x] === '~' || earth[y][x] === '+') {
+            if (waterTiles.indexOf(earth[y][x]) > -1) {
                 count++;
             }
         }
